@@ -270,11 +270,20 @@ export default function CompPage() {
   return (
     <main className="px-4 py-6 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.push("/")}
+            className="text-stone-500 hover:text-stone-300 transition-colors"
+            aria-label="Back to home"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          <div>
           <h1 className="text-h2 font-heading">{compName}</h1>
           <p className="text-sm text-stone-400">
             {session.displayName} &middot; {session.categoryName}
           </p>
+          </div>
         </div>
         <div className="text-right">
           <p className="text-2xl font-heading font-bold text-terracotta">{totalPoints}</p>
