@@ -1,16 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+
+interface ActiveComp {
+  id: string;
+  name: string;
+  code: string;
+}
 
 export default function Home() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [comps, setComps] = useState<ActiveComp[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/comps/active")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setComps(data); })
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,8 +73,8 @@ export default function Home() {
                 setCode(e.target.value.toUpperCase());
                 setError("");
               }}
-              placeholder="ABC123"
-              maxLength={6}
+              placeholder="ABC"
+              maxLength={3}
               error={error}
               className="text-center text-2xl font-heading tracking-[0.3em] uppercase"
               autoComplete="off"
@@ -69,6 +84,29 @@ export default function Home() {
             </Button>
           </form>
         </Card>
+
+        {comps.length > 0 && (
+          <div className="w-full">
+            <p className="text-xs text-stone-500 font-heading uppercase tracking-wider mb-3 text-center">
+              Active Competitions
+            </p>
+            <div className="flex flex-col gap-2">
+              {comps.map((comp) => (
+                <Card
+                  key={comp.id}
+                  className="cursor-pointer active:scale-[0.99] transition-transform"
+                  onClick={() => router.push(`/comp/${comp.id}`)}
+                  padding="sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="font-heading font-semibold text-stone-50">{comp.name}</p>
+                    <Badge>{comp.code}</Badge>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         <a
           href="/login"
