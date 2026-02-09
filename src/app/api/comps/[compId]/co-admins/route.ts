@@ -45,13 +45,14 @@ export async function POST(
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = session.user.id;
 
     // Owner only
     const comp = await prisma.comp.findUnique({ where: { id: compId } });
     if (!comp) {
       return NextResponse.json({ error: "Comp not found" }, { status: 404 });
     }
-    if (comp.ownerId !== session.user.id) {
+    if (comp.ownerId !== userId) {
       return NextResponse.json({ error: "Only the owner can add co-admins" }, { status: 403 });
     }
 
@@ -118,13 +119,14 @@ export async function DELETE(
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = session.user.id;
 
     // Owner only
     const comp = await prisma.comp.findUnique({ where: { id: compId } });
     if (!comp) {
       return NextResponse.json({ error: "Comp not found" }, { status: 404 });
     }
-    if (comp.ownerId !== session.user.id) {
+    if (comp.ownerId !== userId) {
       return NextResponse.json({ error: "Only the owner can remove co-admins" }, { status: 403 });
     }
 

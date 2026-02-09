@@ -85,13 +85,14 @@ export async function DELETE(
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = session.user.id;
 
     const comp = await prisma.comp.findUnique({ where: { id: compId } });
     if (!comp) {
       return NextResponse.json({ error: "Comp not found" }, { status: 404 });
     }
 
-    if (comp.ownerId !== session.user.id) {
+    if (comp.ownerId !== userId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

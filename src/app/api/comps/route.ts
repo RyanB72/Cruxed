@@ -9,12 +9,13 @@ export async function GET() {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = session.user.id;
 
     const comps = await prisma.comp.findMany({
       where: {
         OR: [
-          { ownerId: session.user.id },
-          { coAdmins: { some: { userId: session.user.id } } },
+          { ownerId: userId },
+          { coAdmins: { some: { userId } } },
         ],
       },
       include: {
@@ -47,6 +48,7 @@ export async function POST(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = session.user.id;
 
     const body = await req.json();
     const parsed = createCompSchema.safeParse(body);
@@ -74,7 +76,7 @@ export async function POST(req: Request) {
         data: {
           name: parsed.data.name,
           code,
-          ownerId: session.user!.id!,
+          ownerId: userId,
           defaultPointConfig,
           closesAt: parsed.data.closesAt ?? null,
         },
@@ -92,7 +94,7 @@ export async function POST(req: Request) {
       if (parsed.data.coAdminEmails?.length) {
         for (const email of parsed.data.coAdminEmails) {
           const user = await tx.user.findUnique({ where: { email } });
-          if (user && user.id !== session.user.id) {
+          if (user && user.id !== userId) {
             await tx.coAdmin.create({
               data: { compId: c.id, userId: user.id },
             }).catch(() => {}); // ignore duplicates
