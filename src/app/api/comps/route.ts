@@ -74,7 +74,7 @@ export async function POST(req: Request) {
         data: {
           name: parsed.data.name,
           code,
-          ownerId: session.user.id,
+          ownerId: session.user.id!,
           defaultPointConfig,
           closesAt: parsed.data.closesAt ?? null,
         },
