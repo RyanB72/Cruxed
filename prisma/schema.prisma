@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  hashedPassword String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  ownedComps   Comp[]    @relation("CompOwner")
+  coAdminComps CoAdmin[]
+}
+
+model Comp {
+  id                 String     @id @default(cuid())
+  name               String
+  code               String     @unique
+  status             CompStatus @default(DRAFT)
+  defaultPointConfig Json
+  closesAt           DateTime?
+  ownerId            String
+  owner              User       @relation("CompOwner", fields: [ownerId], references: [id])
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  climbs       Climb[]
+  participants Participant[]
+  coAdmins     CoAdmin[]
+  categories   Category[]
+
+  @@index([code])
+}
+
+enum CompStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+}
+
+model CoAdmin {
+  id        String   @id @default(cuid())
+  userId    String
+  compId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comp      Comp     @relation(fields: [compId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, compId])
+}
+
+model Climb {
+  id          String   @id @default(cuid())
+  compId      String
+  comp        Comp     @relation(fields: [compId], references: [id], onDelete: Cascade)
+  name        String
+  climbNumber Int
+  sortOrder   Int      @default(0)
+  pointConfig Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  scores Score[]
+
+  @@index([compId])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  compId    String
+  comp      Comp     @relation(fields: [compId], references: [id], onDelete: Cascade)
+  name      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  participants Participant[]
+
+  @@unique([compId, name])
+  @@index([compId])
+}
+
+model Participant {
+  id          String   @id @default(cuid())
+  compId      String
+  comp        Comp     @relation(fields: [compId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  displayName String
+  deviceId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  scores Score[]
+
+  @@unique([compId, deviceId])
+  @@index([compId])
+}
+
+model Score {
+  id            String      @id @default(cuid())
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  climbId       String
+  climb         Climb       @relation(fields: [climbId], references: [id], onDelete: Cascade)
+  attempts      Int
+  topped        Boolean     @default(false)
+  points        Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([participantId, climbId])
+  @@index([climbId])
+  @@index([participantId])
+}

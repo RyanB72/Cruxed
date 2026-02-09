@@ -1,26 +1,68 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Base - dark charcoals */
+  --color-stone-950: #0C0A09;
+  --color-stone-900: #1C1917;
+  --color-stone-800: #292524;
+  --color-stone-700: #44403C;
+  --color-stone-600: #57534E;
+  --color-stone-500: #78716C;
+  --color-stone-400: #A8A29E;
+  --color-stone-300: #D6D3D1;
+  --color-stone-200: #E7E5E4;
+  --color-stone-100: #F5F5F4;
+  --color-stone-50: #FAFAF9;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Accent - terracotta */
+  --color-terracotta: #C2632A;
+  --color-terracotta-light: #D4845A;
+  --color-terracotta-dark: #9A4E20;
+  --color-terracotta-muted: rgba(194, 99, 42, 0.12);
+
+  /* Secondary - sage */
+  --color-sage: #7C9A72;
+  --color-sage-light: #A3B899;
+  --color-sage-dark: #5A7350;
+  --color-sage-muted: rgba(124, 154, 114, 0.12);
+
+  /* Functional */
+  --color-error: #DC4A3F;
+  --color-error-muted: rgba(220, 74, 63, 0.12);
+
+  /* Fonts */
+  --font-heading: "Space Grotesk", sans-serif;
+  --font-body: "DM Sans", sans-serif;
+
+  /* Font sizes */
+  --text-display: 2.5rem;
+  --text-display--line-height: 1.1;
+  --text-display--font-weight: 700;
+  --text-display--letter-spacing: -0.02em;
+
+  --text-h1: 1.875rem;
+  --text-h1--line-height: 1.2;
+  --text-h1--font-weight: 700;
+  --text-h1--letter-spacing: -0.01em;
+
+  --text-h2: 1.5rem;
+  --text-h2--line-height: 1.3;
+  --text-h2--font-weight: 600;
+
+  --text-h3: 1.25rem;
+  --text-h3--line-height: 1.4;
+  --text-h3--font-weight: 600;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-stone-950);
+  color: var(--color-stone-200);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-stone-50);
 }
