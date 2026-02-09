@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,59 +51,41 @@ export default function CompPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const existing = getCompSession(compId);
-    if (existing) {
-      setSession(existing);
-    }
-    loadComp();
-  }, [compId]);
-
-  useEffect(() => {
-    if (session) {
-      loadScores();
-    }
-  }, [session]);
-
-  async function loadComp() {
+  const loadAll = useCallback(async (participantId?: string) => {
     try {
-      const [compRes, climbsRes, catsRes] = await Promise.all([
-        fetch(`/api/comps/${compId}`),
-        fetch(`/api/comps/${compId}/climbs`),
-        fetch(`/api/comps/${compId}/categories`),
-      ]);
-      if (compRes.ok) {
-        const comp = await compRes.json();
-        setCompName(comp.name);
+      const pid = participantId || session?.participantId;
+      const url = pid
+        ? `/api/comps/${compId}/public?participantId=${pid}`
+        : `/api/comps/${compId}/public`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        setError("Failed to load competition");
+        return;
       }
-      if (climbsRes.ok) {
-        setClimbs(await climbsRes.json());
-      }
-      if (catsRes.ok) {
-        const cats = await catsRes.json();
-        setCategories(cats);
-        if (cats.length > 0 && !selectedCategoryId) {
-          setSelectedCategoryId(cats[0].id);
-        }
+      const data = await res.json();
+      setCompName(data.name);
+      setClimbs(data.climbs);
+      setCategories(data.categories);
+      setScores(data.scores || []);
+      if (data.categories.length > 0 && !selectedCategoryId) {
+        setSelectedCategoryId(data.categories[0].id);
       }
     } catch {
       setError("Failed to load competition");
     } finally {
       setLoading(false);
     }
-  }
+  }, [compId, session?.participantId, selectedCategoryId]);
 
-  async function loadScores() {
-    if (!session) return;
-    try {
-      const res = await fetch(
-        `/api/comps/${compId}/scores?participantId=${session.participantId}`
-      );
-      if (res.ok) {
-        setScores(await res.json());
-      }
-    } catch { /* ignore */ }
-  }
+  useEffect(() => {
+    const existing = getCompSession(compId);
+    if (existing) {
+      setSession(existing);
+      loadAll(existing.participantId);
+    } else {
+      loadAll();
+    }
+  }, [compId]);
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
@@ -143,6 +125,7 @@ export default function CompPage() {
       };
       setCompSession(compId, sessionData);
       setSession(sessionData);
+      loadAll(participant.id);
     } catch {
       setError("Something went wrong");
     } finally {
@@ -176,6 +159,7 @@ export default function CompPage() {
       };
       setCompSession(compId, sessionData);
       setSession(sessionData);
+      loadAll(participant.id);
     } catch {
       setError("Something went wrong");
     } finally {

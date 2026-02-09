@@ -110,7 +110,13 @@ export default function LeaderboardPage() {
             return (
               <Card
                 key={entry.participantId}
-                className={`${isMe ? "border-terracotta" : ""}`}
+                className={`${
+                  entry.rank === 1
+                    ? "border-amber-400/70 shadow-[0_0_12px_2px_rgba(251,191,36,0.25)]"
+                    : isMe
+                      ? "border-terracotta"
+                      : ""
+                }`}
                 padding="sm"
               >
                 <div className="flex items-center gap-3">

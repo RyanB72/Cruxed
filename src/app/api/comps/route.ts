@@ -33,9 +33,14 @@ export async function GET() {
   }
 }
 
+const CODE_CHARS = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
+
 async function generateUniqueCode(): Promise<string> {
   for (let i = 0; i < 10; i++) {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    let code = "";
+    for (let j = 0; j < 3; j++) {
+      code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
+    }
     const existing = await prisma.comp.findUnique({ where: { code } });
     if (!existing) return code;
   }
