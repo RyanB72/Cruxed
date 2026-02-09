@@ -131,14 +131,14 @@ export async function DELETE(
     }
 
     const body = await req.json();
-    const { userId } = body;
+    const targetUserId = body.userId;
 
-    if (!userId || typeof userId !== "string") {
+    if (!targetUserId || typeof targetUserId !== "string") {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
     }
 
     const coAdmin = await prisma.coAdmin.findUnique({
-      where: { userId_compId: { userId, compId } },
+      where: { userId_compId: { userId: targetUserId, compId } },
     });
     if (!coAdmin) {
       return NextResponse.json({ error: "Co-admin not found" }, { status: 404 });
