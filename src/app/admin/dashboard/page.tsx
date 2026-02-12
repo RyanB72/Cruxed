@@ -7,10 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  PointConfigEditor,
-  type PointConfig,
-} from "@/components/admin/point-config-editor";
+import { GradeListEditor } from "@/components/admin/grade-list-editor";
+import { DEFAULT_GRADES, type Grade } from "@/lib/default-grades";
 
 interface Comp {
   id: string;
@@ -26,12 +24,12 @@ const statusVariant: Record<string, "neutral" | "terracotta" | "sage"> = {
   COMPLETED: "sage",
 };
 
-const DEFAULT_POINT_CONFIG: PointConfig = {
-  flash: 1000,
-  attempts: { "2": 800, "3": 600, "4": 500 },
-  maxAttempts: 10,
-  minPoints: 100,
-};
+function freshGrades(): Grade[] {
+  return DEFAULT_GRADES.map((g) => ({
+    ...g,
+    pointConfig: { ...g.pointConfig, attempts: { ...g.pointConfig.attempts } },
+  }));
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -45,7 +43,7 @@ export default function DashboardPage() {
   const [newName, setNewName] = useState("");
   const [categories, setCategories] = useState(["Open A Male", "Open A Female"]);
   const [newCatName, setNewCatName] = useState("");
-  const [pointConfig, setPointConfig] = useState<PointConfig>(DEFAULT_POINT_CONFIG);
+  const [grades, setGrades] = useState<Grade[]>(freshGrades);
   const [closesAt, setClosesAt] = useState("");
   const [coAdminEmails, setCoAdminEmails] = useState<string[]>([]);
   const [newCoAdminEmail, setNewCoAdminEmail] = useState("");
@@ -64,7 +62,7 @@ export default function DashboardPage() {
     setNewName("");
     setCategories(["Open A Male", "Open A Female"]);
     setNewCatName("");
-    setPointConfig(DEFAULT_POINT_CONFIG);
+    setGrades(freshGrades());
     setClosesAt("");
     setCoAdminEmails([]);
     setNewCoAdminEmail("");
@@ -112,7 +110,7 @@ export default function DashboardPage() {
         body: JSON.stringify({
           name: newName.trim(),
           categories,
-          defaultPointConfig: pointConfig,
+          grades,
           closesAt: closesAt || null,
           coAdminEmails: coAdminEmails.length > 0 ? coAdminEmails : undefined,
         }),
@@ -207,15 +205,15 @@ export default function DashboardPage() {
             </div>
           </Card>
 
-          {/* Default Point Config */}
+          {/* Grades */}
           <Card>
             <h2 className="font-heading font-semibold text-stone-50 mb-1">
-              Default Climb Points
+              Grades
             </h2>
             <p className="text-xs text-stone-500 mb-4">
-              New climbs will use these defaults. Can be changed per climb or in settings.
+              Each grade has its own point config. When adding climbs, pick a grade from a dropdown. Can be changed in settings.
             </p>
-            <PointConfigEditor value={pointConfig} onChange={setPointConfig} />
+            <GradeListEditor value={grades} onChange={setGrades} />
           </Card>
 
           {/* Closing Date */}
@@ -313,10 +311,7 @@ export default function DashboardPage() {
                 </h2>
                 <Badge variant={statusVariant[comp.status]}>{comp.status}</Badge>
               </div>
-              <p className="text-sm text-stone-500 font-mono mb-4">
-                {comp.code}
-              </p>
-              <div className="flex gap-4 text-sm text-stone-400">
+              <div className="flex gap-4 text-sm text-stone-400 mt-4">
                 <span>{comp._count.climbs} climbs</span>
                 <span>{comp._count.participants} participants</span>
               </div>

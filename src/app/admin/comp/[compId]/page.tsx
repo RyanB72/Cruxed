@@ -27,7 +27,6 @@ export default function CompOverviewPage() {
   const [comp, setComp] = useState<CompDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetch(`/api/comps/${compId}`)
@@ -57,13 +56,6 @@ export default function CompOverviewPage() {
     } finally {
       setActivating(false);
     }
-  }
-
-  function copyCode() {
-    if (!comp) return;
-    navigator.clipboard.writeText(comp.code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   }
 
   if (loading) {
@@ -99,23 +91,6 @@ export default function CompOverviewPage() {
           {comp.status}
         </Badge>
       </div>
-
-      {/* Code display */}
-      <Card className="mb-8">
-        <div className="flex items-center gap-4">
-          <div>
-            <p className="text-xs text-stone-500 font-heading uppercase tracking-wider mb-1">
-              Competition Code
-            </p>
-            <p className="text-2xl font-mono font-bold text-terracotta tracking-widest">
-              {comp.code}
-            </p>
-          </div>
-          <Button variant="secondary" size="sm" onClick={copyCode}>
-            {copied ? "Copied!" : "Copy"}
-          </Button>
-        </div>
-      </Card>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 mb-8">

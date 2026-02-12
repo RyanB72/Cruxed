@@ -46,6 +46,7 @@ export async function POST(
       data: {
         compId,
         name: parsed.data.name,
+        gradeName: parsed.data.gradeName ?? null,
         climbNumber: parsed.data.climbNumber,
         sortOrder: parsed.data.sortOrder ?? 0,
         pointConfig: parsed.data.pointConfig,

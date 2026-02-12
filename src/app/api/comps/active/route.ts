@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const comps = await prisma.comp.findMany({
       where: { status: "ACTIVE" },
-      select: { id: true, name: true, code: true },
+      select: { id: true, name: true, code: true, _count: { select: { participants: true } } },
       orderBy: { createdAt: "desc" },
     });
 

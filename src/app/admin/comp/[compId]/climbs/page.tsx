@@ -11,10 +11,12 @@ import {
   PointConfigEditor,
   type PointConfig,
 } from "@/components/admin/point-config-editor";
+import { type Grade } from "@/lib/default-grades";
 
 interface Climb {
   id: string;
   name: string;
+  gradeName: string | null;
   climbNumber: number;
   sortOrder: number;
   pointConfig: PointConfig;
@@ -33,20 +35,23 @@ export default function ClimbsPage() {
   const [climbs, setClimbs] = useState<Climb[]>([]);
   const [loading, setLoading] = useState(true);
   const [defaultConfig, setDefaultConfig] = useState<PointConfig>(FALLBACK_POINT_CONFIG);
+  const [grades, setGrades] = useState<Grade[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   // Form state
-  const [formName, setFormName] = useState("");
+  const [formGrade, setFormGrade] = useState("");
   const [formClimbNumber, setFormClimbNumber] = useState("");
   const [formConfig, setFormConfig] = useState<PointConfig>(FALLBACK_POINT_CONFIG);
+  const [showPointOverride, setShowPointOverride] = useState(false);
 
   const resetForm = useCallback(() => {
-    setFormName("");
+    setFormGrade("");
     setFormClimbNumber("");
     setFormConfig(defaultConfig);
+    setShowPointOverride(false);
     setEditingId(null);
     setShowForm(false);
     setError("");
@@ -63,23 +68,41 @@ export default function ClimbsPage() {
           setDefaultConfig(compData.defaultPointConfig);
           setFormConfig(compData.defaultPointConfig);
         }
+        if (Array.isArray(compData?.grades)) {
+          setGrades(compData.grades);
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [compId]);
 
   function startEdit(climb: Climb) {
-    setFormName(climb.name);
+    setFormGrade(climb.gradeName ?? climb.name);
     setFormClimbNumber(String(climb.climbNumber));
     setFormConfig(climb.pointConfig);
+    setShowPointOverride(true);
     setEditingId(climb.id);
     setShowForm(true);
     setError("");
   }
 
+  function handleGradeChange(gradeName: string) {
+    setFormGrade(gradeName);
+    const grade = grades.find((g) => g.name === gradeName);
+    if (grade) {
+      setFormConfig({ ...grade.pointConfig, attempts: { ...grade.pointConfig.attempts } });
+      setShowPointOverride(false);
+    }
+  }
+
+  function nextClimbNumber(): number {
+    if (climbs.length === 0) return 1;
+    return Math.max(...climbs.map((c) => c.climbNumber)) + 1;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!formName.trim()) return;
+    if (!formGrade.trim()) return;
     setSaving(true);
     setError("");
 
@@ -91,7 +114,8 @@ export default function ClimbsPage() {
     }
 
     const body = {
-      name: formName.trim(),
+      name: formGrade.trim(),
+      gradeName: formGrade.trim(),
       climbNumber: num,
       pointConfig: formConfig,
     };
@@ -189,6 +213,7 @@ export default function ClimbsPage() {
               resetForm();
             } else {
               resetForm();
+              setFormClimbNumber(String(nextClimbNumber()));
               setShowForm(true);
             }
           }}
@@ -215,15 +240,44 @@ export default function ClimbsPage() {
                 onChange={(e) => setFormClimbNumber(e.target.value)}
                 autoFocus
               />
-              <Input
-                label="Name"
-                placeholder="Tag Colour"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-              />
+              {grades.length > 0 ? (
+                <div>
+                  <label className="block text-xs text-stone-400 mb-1.5">Grade</label>
+                  <select
+                    value={formGrade}
+                    onChange={(e) => handleGradeChange(e.target.value)}
+                    className="w-full bg-stone-800 border border-stone-700 rounded-xl px-4 py-3 text-stone-200 focus:outline-none focus:ring-2 focus:ring-terracotta/50 focus:border-terracotta/50"
+                  >
+                    <option value="">Select grade</option>
+                    {grades.map((g) => (
+                      <option key={g.id} value={g.name}>{g.name}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <Input
+                  label="Name"
+                  placeholder="Tag Colour"
+                  value={formGrade}
+                  onChange={(e) => setFormGrade(e.target.value)}
+                />
+              )}
             </div>
 
-            <PointConfigEditor value={formConfig} onChange={setFormConfig} />
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowPointOverride(!showPointOverride)}
+                className="text-xs text-stone-400 hover:text-stone-200 transition-colors"
+              >
+                {showPointOverride ? "Hide point override" : "Override points for this climb"}
+              </button>
+              {showPointOverride && (
+                <div className="mt-3">
+                  <PointConfigEditor value={formConfig} onChange={setFormConfig} />
+                </div>
+              )}
+            </div>
 
             {error && <p className="text-sm text-error">{error}</p>}
 
@@ -263,6 +317,9 @@ export default function ClimbsPage() {
                     <h3 className="font-heading font-semibold text-stone-50 truncate">
                       {climb.name}
                     </h3>
+                    {climb.gradeName && (
+                      <Badge variant="sage">{climb.gradeName}</Badge>
+                    )}
                   </div>
                   <p className="text-xs text-stone-500 truncate">
                     {pointSummary(climb.pointConfig)}

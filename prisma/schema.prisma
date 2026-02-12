@@ -24,6 +24,7 @@ model Comp {
   code               String     @unique
   status             CompStatus @default(DRAFT)
   defaultPointConfig Json
+  grades             Json?
   closesAt           DateTime?
   ownerId            String
   owner              User       @relation("CompOwner", fields: [ownerId], references: [id])
@@ -60,6 +61,7 @@ model Climb {
   compId      String
   comp        Comp     @relation(fields: [compId], references: [id], onDelete: Cascade)
   name        String
+  gradeName   String?
   climbNumber Int
   sortOrder   Int      @default(0)
   pointConfig Json

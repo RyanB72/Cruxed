@@ -7,10 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  PointConfigEditor,
-  type PointConfig,
-} from "@/components/admin/point-config-editor";
+import { type PointConfig } from "@/components/admin/point-config-editor";
+import { GradeListEditor } from "@/components/admin/grade-list-editor";
+import { type Grade, gradeId } from "@/lib/default-grades";
 
 interface Comp {
   id: string;
@@ -19,6 +18,7 @@ interface Comp {
   status: "DRAFT" | "ACTIVE" | "COMPLETED";
   ownerId: string;
   defaultPointConfig: PointConfig;
+  grades: Grade[] | null;
   closesAt: string | null;
 }
 
@@ -67,10 +67,10 @@ export default function SettingsPage() {
   const [coAdminError, setCoAdminError] = useState("");
   const [removingCoAdmin, setRemovingCoAdmin] = useState<string | null>(null);
 
-  // Default point config
-  const [editConfig, setEditConfig] = useState<PointConfig | null>(null);
-  const [savingConfig, setSavingConfig] = useState(false);
-  const [configSuccess, setConfigSuccess] = useState(false);
+  // Grades
+  const [editGrades, setEditGrades] = useState<Grade[] | null>(null);
+  const [savingGrades, setSavingGrades] = useState(false);
+  const [gradesSuccess, setGradesSuccess] = useState(false);
 
   // Closing date
   const [editClosesAt, setEditClosesAt] = useState("");
@@ -109,7 +109,7 @@ export default function SettingsPage() {
         const data = await res.json();
         setComp(data);
         setEditName(data.name);
-        if (data.defaultPointConfig) setEditConfig(data.defaultPointConfig);
+        if (data.grades) setEditGrades(data.grades);
         if (data.closesAt) setEditClosesAt(data.closesAt.slice(0, 10));
       } catch {
         // silent
@@ -156,23 +156,39 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleSaveConfig() {
-    if (!editConfig) return;
-    setSavingConfig(true);
+  async function handleSaveGrades() {
+    if (!editGrades) return;
+    setSavingGrades(true);
     try {
       const res = await fetch(`/api/comps/${compId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ defaultPointConfig: editConfig }),
+        body: JSON.stringify({ grades: editGrades }),
       });
       if (res.ok) {
         const updated = await res.json();
         setComp(updated);
-        setConfigSuccess(true);
-        setTimeout(() => setConfigSuccess(false), 2000);
+        setGradesSuccess(true);
+        setTimeout(() => setGradesSuccess(false), 2000);
       }
     } catch { /* silent */ }
-    finally { setSavingConfig(false); }
+    finally { setSavingGrades(false); }
+  }
+
+  function initGradesFromDefault() {
+    const config = comp?.defaultPointConfig as PointConfig | undefined;
+    const fallback: PointConfig = {
+      flash: 1000,
+      attempts: { "2": 800, "3": 600, "4": 500 },
+      maxAttempts: 10,
+      minPoints: 100,
+    };
+    setEditGrades([{
+      id: gradeId(),
+      name: "Default",
+      sortOrder: 0,
+      pointConfig: config ?? fallback,
+    }]);
   }
 
   async function handleSaveClosesAt() {
@@ -410,23 +426,27 @@ export default function SettingsPage() {
         </div>
       </Card>
 
-      {/* Default Point Config */}
+      {/* Grades */}
       <Card className="mb-6">
         <h2 className="font-heading font-semibold text-stone-50 mb-2">
-          Default Climb Points
+          Grades
         </h2>
         <p className="text-sm text-stone-500 mb-4">
-          New climbs will use this point configuration by default.
+          Each grade has its own point config. When adding climbs, pick a grade from a dropdown.
         </p>
-        {editConfig && (
+        {editGrades ? (
           <>
-            <PointConfigEditor value={editConfig} onChange={setEditConfig} />
+            <GradeListEditor value={editGrades} onChange={setEditGrades} />
             <div className="mt-4">
-              <Button onClick={handleSaveConfig} loading={savingConfig}>
-                {configSuccess ? "Saved!" : "Save"}
+              <Button onClick={handleSaveGrades} loading={savingGrades}>
+                {gradesSuccess ? "Saved!" : "Save"}
               </Button>
             </div>
           </>
+        ) : (
+          <Button variant="secondary" onClick={initGradesFromDefault}>
+            Set Up Grades
+          </Button>
         )}
       </Card>
 

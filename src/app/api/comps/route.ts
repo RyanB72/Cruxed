@@ -67,12 +67,14 @@ export async function POST(req: Request) {
 
     const code = await generateUniqueCode();
 
-    const defaultPointConfig = parsed.data.defaultPointConfig ?? {
-      flash: 1000,
-      attempts: { "2": 800, "3": 600, "4": 500 },
-      maxAttempts: 10,
-      minPoints: 100,
-    };
+    const grades = parsed.data.grades ?? null;
+    const defaultPointConfig = parsed.data.defaultPointConfig
+      ?? (grades ? grades[0].pointConfig : {
+        flash: 1000,
+        attempts: { "2": 800, "3": 600, "4": 500 },
+        maxAttempts: 10,
+        minPoints: 100,
+      });
 
     const categoryNames = parsed.data.categories ?? ["Open A Male", "Open A Female"];
 
@@ -83,6 +85,7 @@ export async function POST(req: Request) {
           code,
           ownerId: userId,
           defaultPointConfig,
+          grades: grades ?? undefined,
           closesAt: parsed.data.closesAt ?? null,
         },
       });

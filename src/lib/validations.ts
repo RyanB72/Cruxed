@@ -1,10 +1,20 @@
 import { z } from "zod";
 import { pointConfigSchema } from "./scoring";
 
+export const gradeSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1).max(50),
+  sortOrder: z.number().int(),
+  pointConfig: pointConfigSchema,
+});
+
+export const gradesArraySchema = z.array(gradeSchema).min(1, "At least one grade required");
+
 export const createCompSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
   categories: z.array(z.string().min(1).max(100)).min(1, "At least one category required").optional(),
   defaultPointConfig: pointConfigSchema.optional(),
+  grades: gradesArraySchema.optional(),
   closesAt: z.coerce.date().optional().nullable(),
   coAdminEmails: z.array(z.string().email()).optional(),
 });
@@ -13,6 +23,7 @@ export const updateCompSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   status: z.enum(["DRAFT", "ACTIVE", "COMPLETED"]).optional(),
   defaultPointConfig: pointConfigSchema.optional(),
+  grades: gradesArraySchema.optional(),
   closesAt: z.coerce.date().optional().nullable(),
 });
 
@@ -21,6 +32,7 @@ export const createClimbSchema = z.object({
   climbNumber: z.number().int().min(1, "Climb number is required"),
   sortOrder: z.number().int().min(0).optional(),
   pointConfig: pointConfigSchema,
+  gradeName: z.string().max(50).optional(),
 });
 
 export const updateClimbSchema = z.object({
