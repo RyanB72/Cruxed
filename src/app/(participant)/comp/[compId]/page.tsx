@@ -45,6 +45,7 @@ export default function CompPage() {
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "topped" | "not_topped">("all");
   const [showExisting, setShowExisting] = useState(false);
   const [existingName, setExistingName] = useState("");
   const [lookingUp, setLookingUp] = useState(false);
@@ -286,7 +287,7 @@ export default function CompPage() {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-heading font-bold text-terracotta">{totalPoints}</p>
+          <p className="text-2xl font-heading font-bold text-terracotta animate-glow-pulse">{totalPoints}</p>
           <p className="text-xs text-stone-500 uppercase tracking-wide">Points</p>
         </div>
       </div>
@@ -299,7 +300,7 @@ export default function CompPage() {
       </div>
 
       {/* Search */}
-      <div className="mb-4">
+      <div className="mb-3">
         <Input
           placeholder="Search by climb number or name..."
           value={search}
@@ -307,10 +308,32 @@ export default function CompPage() {
         />
       </div>
 
+      {/* Filter toggles */}
+      <div className="flex gap-2 mb-4">
+        {(["all", "not_topped", "topped"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`px-4 py-2 rounded-xl text-sm font-heading font-semibold transition-all ${
+              filter === f
+                ? "bg-terracotta text-white"
+                : "bg-stone-800 text-stone-400 border border-stone-700"
+            }`}
+          >
+            {f === "all" ? "All" : f === "topped" ? "Topped" : "Not Topped"}
+          </button>
+        ))}
+      </div>
+
       {/* Climb list */}
       <div className="flex flex-col gap-3">
         {climbs
           .filter((climb) => {
+            if (filter !== "all") {
+              const score = getScoreForClimb(climb.id);
+              if (filter === "topped" && !score?.topped) return false;
+              if (filter === "not_topped" && score?.topped) return false;
+            }
             if (!search.trim()) return true;
             const q = search.trim().toLowerCase();
             return (
@@ -319,12 +342,12 @@ export default function CompPage() {
               climb.name.toLowerCase().includes(q)
             );
           })
-          .map((climb) => {
+          .map((climb, i) => {
           const score = getScoreForClimb(climb.id);
           return (
             <Card
               key={climb.id}
-              className="cursor-pointer active:scale-[0.99] transition-transform"
+              className={`cursor-pointer active:scale-[0.99] transition-transform animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
               onClick={() => router.push(`/comp/${compId}/climb/${climb.id}`)}
             >
               <div className="flex items-center justify-between">

@@ -33,7 +33,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${spaceGrotesk.variable} ${dmSans.variable}`}>
-        {children}
+        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden="true">
+          <div className="absolute -top-32 -right-32 w-[400px] h-[400px] rounded-full bg-terracotta/[0.06] blur-3xl animate-blob-drift" />
+          <div className="absolute -bottom-32 -left-32 w-[350px] h-[350px] rounded-full bg-sage/[0.05] blur-3xl animate-blob-drift" style={{ animationDelay: "-10s" }} />
+        </div>
+        <div className="relative z-10">
+          {children}
+        </div>
       </body>
     </html>
   );

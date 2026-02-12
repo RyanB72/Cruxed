@@ -112,7 +112,7 @@ export default function LeaderboardPage() {
                 key={entry.participantId}
                 className={`${
                   entry.rank === 1
-                    ? "border-amber-400/70 shadow-[0_0_12px_2px_rgba(251,191,36,0.25)]"
+                    ? "border-amber-400/70 shadow-[0_0_12px_2px_rgba(251,191,36,0.25)] animate-shimmer"
                     : isMe
                       ? "border-terracotta"
                       : ""
